@@ -1,0 +1,6 @@
+*.tlog
+*.log
+*.obj
+.vs
+obj
+bin
