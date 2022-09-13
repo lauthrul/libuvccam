@@ -59,7 +59,7 @@ CUVCCamDemoDlg::CUVCCamDemoDlg(CWnd* pParent /*=nullptr*/)
 void CUVCCamDemoDlg::DoDataExchange(CDataExchange* pDX) {
     CDialogEx::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_COMBO_DEVICES, m_cmbDevices);
-    DDX_Control(pDX, IDC_STATIC_STATUS, m_stcStatus);
+    DDX_Control(pDX, IDC_CHECK_AUTOFRAMING, m_chkAutoFraming);
     DDX_Control(pDX, IDC_BUTTON_LEFT, m_btnLeft);
     DDX_Control(pDX, IDC_BUTTON_UP, m_btnUp);
     DDX_Control(pDX, IDC_BUTTON_RIGHT, m_btnRight);
@@ -67,6 +67,7 @@ void CUVCCamDemoDlg::DoDataExchange(CDataExchange* pDX) {
     DDX_Control(pDX, IDC_BUTTON_ZOOMIN, m_btnZoomIn);
     DDX_Control(pDX, IDC_BUTTON_ZOOMOUT, m_btnZoomOut);
     DDX_Control(pDX, IDC_BUTTON_RESET, m_btnReset);
+    DDX_Control(pDX, IDC_STATIC_STATUS, m_stcStatus);
 }
 
 BEGIN_MESSAGE_MAP(CUVCCamDemoDlg, CDialogEx)
@@ -75,6 +76,7 @@ BEGIN_MESSAGE_MAP(CUVCCamDemoDlg, CDialogEx)
     ON_WM_QUERYDRAGICON()
     ON_WM_TIMER()
     ON_CBN_SELCHANGE(IDC_COMBO_DEVICES, &CUVCCamDemoDlg::OnSelchangeComboDevices)
+    ON_BN_CLICKED(IDC_CHECK_AUTOFRAMING, &CUVCCamDemoDlg::OnBnClickedAutoFraming)
     ON_BN_CLICKED(IDC_BUTTON_RESET, &CUVCCamDemoDlg::OnBnClickedButtonReset)
 END_MESSAGE_MAP()
 
@@ -230,13 +232,36 @@ HCURSOR CUVCCamDemoDlg::OnQueryDragIcon() {
     return static_cast<HCURSOR>(m_hIcon);
 }
 
+int CUVCCamDemoDlg::OperateAutoFraming(libuvccam::UVCCamera::EXUOP op, BYTE* data, ULONG len) {
+    ULONG readCount;
+    GUID guid;
+    CLSIDFromString(L"{A29E7641-DE04-47E3-8B2B-F4341AFF003B}", &guid);
+    return m_uvcCamera.XUOperate(op, guid, 8, data, len, &readCount);
+}
 
 void CUVCCamDemoDlg::OnSelchangeComboDevices() {
     CString text;
     m_cmbDevices.GetLBText(m_cmbDevices.GetCurSel(), text);
+
     auto ret = m_uvcCamera.Connect(text.GetBuffer());
     text.Format(L"[%s]连接%s", text, ret ? L"成功" : L"失败");
     m_stcStatus.SetWindowText(text);
+
+    if (text.Find(L"Camera 100-HW") >= 0) {
+        BYTE data[60] = { 0 };
+        OperateAutoFraming(libuvccam::UVCCamera::GET, data, _countof(data));
+        m_chkAutoFraming.SetCheck(data[1]);
+        m_chkAutoFraming.ShowWindow(TRUE);
+    } else {
+        m_chkAutoFraming.ShowWindow(FALSE);
+    }
+}
+
+void CUVCCamDemoDlg::OnBnClickedAutoFraming() {
+    BYTE data[60] = { 0 };
+    data[0] = m_chkAutoFraming.GetCheck(); // 0:off, 1:on
+    data[1] = 14; // 14:Auto-Framing
+    OperateAutoFraming(libuvccam::UVCCamera::SET, data, _countof(data));
 }
 
 void CUVCCamDemoDlg::OnBnClickedButtonReset() {

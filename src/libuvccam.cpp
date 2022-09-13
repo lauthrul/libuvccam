@@ -240,4 +240,74 @@ namespace libuvccam {
 
         return ret;
     }
+
+    HRESULT _FindExtensionNode(IKsTopologyInfo* pKsTopologyInfo, DWORD* node) {
+        if (!pKsTopologyInfo || !node)
+            return E_POINTER;
+
+        HRESULT hr = E_FAIL;
+        DWORD dwNumNodes = 0;
+        GUID guidNodeType;
+        IKsControl* pKsControl = NULL;
+        ULONG ulBytesReturned = 0;
+
+        // Retrieve the number of nodes in the filter
+        hr = pKsTopologyInfo->get_NumNodes(&dwNumNodes);
+        if (!SUCCEEDED(hr))
+            return hr;
+        if (dwNumNodes == 0)
+            return E_FAIL;
+
+
+        // Find the extension unit node that corresponds to the given GUID
+        for (unsigned int i = 0; i < dwNumNodes; i++) {
+            hr = E_FAIL;
+            pKsTopologyInfo->get_NodeType(i, &guidNodeType);
+            if (IsEqualGUID(guidNodeType, KSNODETYPE_DEV_SPECIFIC)) {
+                *node = i;
+                return S_OK;
+            }
+        }
+
+        return E_FAIL;
+    }
+
+    int UVCCamera::XUOperate(EXUOP op, GUID guid, ULONG cs, __inout LPVOID data, ULONG len, __out ULONG* readCount) {
+        IUnknown* unKnown;
+        IKsControl* ks_control = NULL;
+        IKsTopologyInfo* pKsTopologyInfo = NULL;
+        KSP_NODE kspNode;
+        HRESULT hr = S_OK;
+
+        do {
+            hr = m_pDeviceFilter->QueryInterface(__uuidof(IKsTopologyInfo), (void **)&pKsTopologyInfo);
+            if (hr != S_OK) break;
+
+            DWORD dwNodeId = 0;
+            hr = _FindExtensionNode(pKsTopologyInfo, &dwNodeId);
+            if (hr != S_OK) break;
+
+            hr = pKsTopologyInfo->CreateNodeInstance(dwNodeId, IID_IUnknown, (LPVOID *)&unKnown);
+            if (hr != S_OK) break;
+
+            hr = unKnown->QueryInterface(__uuidof(IKsControl), (void **)&ks_control);
+            if (hr != S_OK) break;
+
+            kspNode.Property.Set = guid;            // XU GUID
+            kspNode.NodeId = (ULONG)dwNodeId;       // XU Node ID
+            kspNode.Property.Id = cs;               // XU control ID
+            // Set/Get request
+            if (op == SET) {
+                kspNode.Property.Flags = KSPROPERTY_TYPE_SET | KSPROPERTY_TYPE_TOPOLOGY;
+            } else {
+                kspNode.Property.Flags = KSPROPERTY_TYPE_GET | KSPROPERTY_TYPE_TOPOLOGY;
+            }
+
+            hr = ks_control->KsProperty((PKSPROPERTY)&kspNode, sizeof(kspNode), (PVOID)data, len, readCount);
+            if (hr != S_OK) break;
+        } while (0);
+
+        SAFE_RELEASE(ks_control);
+        return hr;
+    }
 }

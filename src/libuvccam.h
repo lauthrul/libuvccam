@@ -12,7 +12,7 @@
 #include <functional>
 
 namespace libuvccam {
-    enum EMoveAction{
+    enum EMoveAction {
         None,
         MoveLeft,
         MoveUp,
@@ -39,6 +39,12 @@ namespace libuvccam {
         int RelativeStop();
 
         int Reset();
+
+        enum EXUOP {
+            GET,
+            SET,
+        };
+        int XUOperate(EXUOP op, GUID guid, ULONG cs, __inout LPVOID data, ULONG len, __out ULONG* readCount);
 
     private:
         void Release();

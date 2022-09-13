@@ -32,13 +32,17 @@ protected:
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
     afx_msg void OnSelchangeComboDevices();
+    afx_msg void OnBnClickedAutoFraming();
     afx_msg void OnBnClickedButtonReset();
     afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
+protected:
+    int OperateAutoFraming(libuvccam::UVCCamera::EXUOP op, BYTE* data, ULONG len);
+
 private:
     CComboBox m_cmbDevices;
-    CStatic m_stcStatus;
+    CButton m_chkAutoFraming;
     CButton m_btnLeft;
     CButton m_btnUp;
     CButton m_btnRight;
@@ -46,6 +50,7 @@ private:
     CButton m_btnZoomIn;
     CButton m_btnZoomOut;
     CButton m_btnReset;
+    CStatic m_stcStatus;
 
     libuvccam::UVCCamera m_uvcCamera;
     libuvccam::EMoveAction m_nMoveAction;
