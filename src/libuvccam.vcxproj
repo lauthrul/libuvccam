@@ -170,6 +170,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /e $(ProjectDir)util.h $(SolutionDir)out\include\
+xcopy /y /e $(ProjectDir)libuvccam.h $(SolutionDir)out\include\
+xcopy /y /e $(OutDir)libuvccam.lib $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.dll $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.pdb $(SolutionDir)out\lib\$(ConfigurationName)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Lib_Debug|Win32'">
     <ClCompile>
@@ -185,6 +192,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /e $(ProjectDir)util.h $(SolutionDir)out\include\
+xcopy /y /e $(ProjectDir)libuvccam.h $(SolutionDir)out\include\
+xcopy /y /e $(OutDir)libuvccam.lib $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.dll $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.pdb $(SolutionDir)out\lib\$(ConfigurationName)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -200,6 +214,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>mf.lib;mfreadwrite.lib;mfplat.lib;mfplay.lib;mfuuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /e $(ProjectDir)util.h $(SolutionDir)out\include\
+xcopy /y /e $(ProjectDir)libuvccam.h $(SolutionDir)out\include\
+xcopy /y /e $(OutDir)libuvccam.lib $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.dll $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.pdb $(SolutionDir)out\lib\$(ConfigurationName)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Lib_Debug|x64'">
     <ClCompile>
@@ -215,6 +236,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>mf.lib;mfreadwrite.lib;mfplat.lib;mfplay.lib;mfuuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /e $(ProjectDir)util.h $(SolutionDir)out\include\
+xcopy /y /e $(ProjectDir)libuvccam.h $(SolutionDir)out\include\
+xcopy /y /e $(OutDir)libuvccam.lib $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.dll $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.pdb $(SolutionDir)out\lib\$(ConfigurationName)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -234,6 +262,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /e $(ProjectDir)util.h $(SolutionDir)out\include\
+xcopy /y /e $(ProjectDir)libuvccam.h $(SolutionDir)out\include\
+xcopy /y /e $(OutDir)libuvccam.lib $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.dll $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.pdb $(SolutionDir)out\lib\$(ConfigurationName)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Lib_Release|Win32'">
     <ClCompile>
@@ -253,6 +288,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /e $(ProjectDir)util.h $(SolutionDir)out\include\
+xcopy /y /e $(ProjectDir)libuvccam.h $(SolutionDir)out\include\
+xcopy /y /e $(OutDir)libuvccam.lib $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.dll $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.pdb $(SolutionDir)out\lib\$(ConfigurationName)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -272,6 +314,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>mf.lib;mfreadwrite.lib;mfplat.lib;mfplay.lib;mfuuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /e $(ProjectDir)util.h $(SolutionDir)out\include\
+xcopy /y /e $(ProjectDir)libuvccam.h $(SolutionDir)out\include\
+xcopy /y /e $(OutDir)libuvccam.lib $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.dll $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.pdb $(SolutionDir)out\lib\$(ConfigurationName)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Lib_Release|x64'">
     <ClCompile>
@@ -291,6 +340,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>mf.lib;mfreadwrite.lib;mfplat.lib;mfplay.lib;mfuuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /e $(ProjectDir)util.h $(SolutionDir)out\include\
+xcopy /y /e $(ProjectDir)libuvccam.h $(SolutionDir)out\include\
+xcopy /y /e $(OutDir)libuvccam.lib $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.dll $(SolutionDir)out\lib\$(ConfigurationName)\
+xcopy /y /e $(OutDir)libuvccam.pdb $(SolutionDir)out\lib\$(ConfigurationName)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
