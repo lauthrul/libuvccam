@@ -38,7 +38,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 protected:
-    int OperateAutoFraming(libuvccam::UVCCamera::EXUOP op, BYTE* data, ULONG len);
+    int OperateAutoFraming(libuvccam::EXUOP op, BYTE* data, ULONG len);
 
 private:
     CComboBox m_cmbDevices;

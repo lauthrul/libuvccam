@@ -8,7 +8,7 @@
 #define PCH_H
 
 // 添加要在此处预编译的标头
-#include <vld.h>
+// #include <vld.h>
 #include "framework.h"
 
 #endif //PCH_H

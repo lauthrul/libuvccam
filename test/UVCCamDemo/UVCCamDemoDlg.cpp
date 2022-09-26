@@ -112,10 +112,10 @@ BOOL CUVCCamDemoDlg::OnInitDialog() {
     // TODO: 在此添加额外的初始化代码
     m_cmbDevices.GetWindow(GW_CHILD)->SendMessage(EM_SETREADONLY, true, 0);
 
-    map<int, TString> devices;
+    std::map<int, libuvccam::CameraInfo> devices;
     m_uvcCamera.ListDevices(devices);
     for (auto dev : devices) {
-        m_cmbDevices.AddString(dev.second.c_str());
+        m_cmbDevices.AddString(dev.second.deviceName.c_str());
     }
 
     return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -232,7 +232,7 @@ HCURSOR CUVCCamDemoDlg::OnQueryDragIcon() {
     return static_cast<HCURSOR>(m_hIcon);
 }
 
-int CUVCCamDemoDlg::OperateAutoFraming(libuvccam::UVCCamera::EXUOP op, BYTE* data, ULONG len) {
+int CUVCCamDemoDlg::OperateAutoFraming(libuvccam::EXUOP op, BYTE* data, ULONG len) {
     ULONG readCount;
     GUID guid;
     CLSIDFromString(L"{A29E7641-DE04-47E3-8B2B-F4341AFF003B}", &guid);
@@ -244,12 +244,12 @@ void CUVCCamDemoDlg::OnSelchangeComboDevices() {
     m_cmbDevices.GetLBText(m_cmbDevices.GetCurSel(), text);
 
     auto ret = m_uvcCamera.Connect(text.GetBuffer());
-    text.Format(L"[%s]连接%s", text, ret ? L"成功" : L"失败");
+    text.Format(L"[%s]连接%s", text, ret == S_OK ? L"成功" : L"失败");
     m_stcStatus.SetWindowText(text);
 
     if (text.Find(L"Camera 100-HW") >= 0) {
         BYTE data[60] = { 0 };
-        OperateAutoFraming(libuvccam::UVCCamera::GET, data, _countof(data));
+        OperateAutoFraming(libuvccam::GET, data, _countof(data));
         m_chkAutoFraming.SetCheck(data[1]);
         m_chkAutoFraming.ShowWindow(TRUE);
     } else {
@@ -261,7 +261,7 @@ void CUVCCamDemoDlg::OnBnClickedAutoFraming() {
     BYTE data[60] = { 0 };
     data[0] = m_chkAutoFraming.GetCheck(); // 0:off, 1:on
     data[1] = 14; // 14:Auto-Framing
-    OperateAutoFraming(libuvccam::UVCCamera::SET, data, _countof(data));
+    OperateAutoFraming(libuvccam::SET, data, _countof(data));
 }
 
 void CUVCCamDemoDlg::OnBnClickedButtonReset() {

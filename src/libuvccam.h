@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "util.h"
 #include <tchar.h>
@@ -22,16 +22,34 @@ namespace libuvccam {
         ZoomOut,
     };
 
+    enum EXUOP {
+        GET,
+        SET,
+    };
+
+    struct CameraInfo {
+        int         index;
+        TString     clsid;
+        TString     deviceName;
+        TString     devicePath;
+        void clear() {
+            index = -1;
+            clsid.clear();
+            deviceName.clear();
+            devicePath.clear();
+        }
+    };
+
     class LIBUVCCAM_API UVCCamera {
     public:
         UVCCamera();
         ~UVCCamera();
 
     public:
-        int ListDevices(map<int, TString>& devices);
-        bool Connect(const TChar* deviceName);
+        int ListDevices(std::map<int, CameraInfo>& devices);
+        int Connect(const TChar* deviceName);
         bool IsConnected();
-        TString GetConnectedDeviceName();
+        CameraInfo GetConnectedDeviceInfo();
         void Disconnect();
 
         int AbsoluteMove(EMoveAction action);
@@ -40,15 +58,11 @@ namespace libuvccam {
 
         int Reset();
 
-        enum EXUOP {
-            GET,
-            SET,
-        };
         int XUOperate(EXUOP op, GUID guid, ULONG cs, __inout LPVOID data, ULONG len, __out ULONG* readCount);
 
     private:
         void Release();
-        typedef std::function<bool(int index, const TChar* deviceName, IMoniker* pMoniker)> EnumerateFunc;
+        typedef std::function<bool(int index, const CameraInfo& deviceInfo, IMoniker* pMoniker)> EnumerateFunc;
         void EnumerateDevices(EnumerateFunc func);
         struct Property {
             long min, max, step, default, val, flags;
@@ -65,6 +79,6 @@ namespace libuvccam {
         //base directshow filter
         IBaseFilter* m_pDeviceFilter = NULL;
 
-        TString m_connectedDevice;
+        CameraInfo m_connectedDevice;
     };
 }

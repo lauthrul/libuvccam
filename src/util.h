@@ -1,8 +1,12 @@
-#pragma once
+﻿#pragma once
 
 #include <string>
-using namespace std;
 
+#if defined(WIN32)
+#pragma comment(lib, "strmiids.lib")
+#endif
+
+#if 1
 #ifdef LIBUVCCAM_EXPORTS
 #   define LIBUVCCAM_API __declspec(dllexport)
 #else
@@ -12,12 +16,15 @@ using namespace std;
 #       define LIBUVCCAM_API __declspec(dllimport)
 #   endif // LIBUVCCAM_STATIC
 #endif
+#else
+#   define LIBUVCCAM_API
+#endif // 0
 
 #ifndef TString
 #   ifdef UNICODE
-#       define TString     wstring
+#       define TString     std::wstring
 #   else
-#       define TString     string
+#       define TString     std::string
 #   endif // UNICODE
 #endif // !TString
 
@@ -36,3 +43,16 @@ using namespace std;
 #       define _T(x)       x
 #   endif // UNICODE
 #endif // !_T
+
+#ifdef DEBUG
+#define LOG_DEBUG(fmt, ...)     _tprintf(fmt, ## __VA_ARGS__)
+#define LOG_INFO(fmt, ...)      _tprintf(fmt, ## __VA_ARGS__)
+#define LOG_WARN(fmt, ...)      _tprintf(fmt, ## __VA_ARGS__)
+#define LOG_ERROR(fmt, ...)     _tprintf(fmt, ## __VA_ARGS__)
+#else
+#define LOG_DEBUG(fmt, ...)
+#define LOG_INFO(fmt, ...)
+#define LOG_WARN(fmt, ...)
+#define LOG_ERROR(fmt, ...)
+#endif // _DEBUG
+

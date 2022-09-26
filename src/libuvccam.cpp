@@ -1,5 +1,21 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "libuvccam.h"
+
+#ifdef WIN32
+#include <comdef.h>
+TString errmsg(HRESULT hr) {
+    TChar sz[MAX_PATH] = { 0 };
+    _com_error err(hr);
+    _stprintf_s(sz, L"[0x%X]%s", hr, err.ErrorMessage());
+    return sz;
+}
+#else
+TString errmsg(HRESULT hr) {
+    TChar sz[32] = { 0 };
+    _stprintf_s(sz, L"0x%X", hr);
+    return sz;
+}
+#endif // WIN32
 
 #define SAFE_RELEASE(ptr) if (ptr != NULL) { ptr->Release(); ptr = NULL; }
 
@@ -52,39 +68,46 @@ namespace libuvccam {
         int index = 0;
         while (m_pEnumMoniker->Next(1, &pMoniker, &nFetched) == S_OK) {
             //real name of the camera without suffix
-            TChar cameraRealNames[256][256];
+            TString cameraRealNames[256];
 
             //unique name with suffix 
-            TChar devname[256];
+            CameraInfo info;
 
             // bind to IPropertyBag
             IPropertyBag *pPropertyBag;
             pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void **)&pPropertyBag);
 
-            // get FriendlyName
+            // get FriendlyName, CLSID, DevicePath
             VARIANT var;
             var.vt = VT_BSTR;
-            pPropertyBag->Read(L"FriendlyName", &var, 0);//DevicePath
-            _tcscpy_s(devname, var.bstrVal);
+            pPropertyBag->Read(L"FriendlyName", &var, 0);//FriendlyName
+            info.deviceName = var.bstrVal;
+            pPropertyBag->Read(L"CLSID", &var, 0);//CLSID
+            info.clsid = var.bstrVal;
+            pPropertyBag->Read(L"DevicePath", &var, 0);//DevicePath
+            info.devicePath = var.bstrVal;
             VariantClear(&var);
 
             int nSameNamedDevices = 0;
             for (int j = 0; j < index; j++) {
-                if (_tcscmp(cameraRealNames[j], devname) == 0)
+                if (cameraRealNames[j] == info.deviceName)
                     nSameNamedDevices++;
             }
-            _tcscpy_s(cameraRealNames[index], devname);
+            cameraRealNames[index] = info.deviceName;
             //if there are the same type of cameras 
             //need to add some suffixes to identify the camera
             //first camera has no prefix
             //suffix [name] #[index] (e.g. PTZOptics Camera #1)
-            if (nSameNamedDevices > 0)
-                _stprintf_s(devname, L"%s #%d", devname, nSameNamedDevices);
+            if (nSameNamedDevices > 0) {
+                TChar devname[256] = { 0 };
+                _stprintf_s(devname, L"%s #%d", info.deviceName, nSameNamedDevices);
+                info.deviceName = devname;
+            }
 
             // stop enumerate if func(...) return false
             auto ret = true;
             if (func != NULL) {
-                ret = func(index, devname, pMoniker);
+                ret = func(index, info, pMoniker);
             }
 
             pPropertyBag->Release();
@@ -98,41 +121,41 @@ namespace libuvccam {
         }
     }
 
-    int UVCCamera::ListDevices(map<int, TString>& devices) {
-        EnumerateDevices([&](int index, const TChar* deviceName, IMoniker *pMoniker)->bool {
-            devices[index] = deviceName;
+    int UVCCamera::ListDevices(std::map<int, CameraInfo>& devices) {
+        EnumerateDevices([&](int index, const CameraInfo& deviceInfo, IMoniker *pMoniker)->bool {
+            devices[index] = deviceInfo;
+            devices[index].index = index;
             return true; // continue enumerate
         });
         return devices.size();
     }
 
-    bool UVCCamera::Connect(const TChar* name) {
-        if (name == m_connectedDevice) {
-            return true;
+    int UVCCamera::Connect(const TChar* name) {
+        HRESULT hr = S_OK;
+        if (name == m_connectedDevice.deviceName) {
+            return hr;
         }
 
         Disconnect();
 
-        int ret = false;
-        EnumerateDevices([&](int index, const TChar* deviceName, IMoniker *pMoniker)->bool {
-            if (_tcscmp(name, deviceName) == 0) {
-                pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&m_pDeviceFilter);
+        EnumerateDevices([&](int index, const CameraInfo& deviceInfo, IMoniker *pMoniker)->bool {
+            if (deviceInfo.deviceName == name) {
+                hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&m_pDeviceFilter);
                 if (m_pDeviceFilter != NULL) {
-                    m_connectedDevice = name;
-                    ret = true;
+                    m_connectedDevice = deviceInfo;
                 }
                 return false; // stop enumerate
             }
             return true; // continue enumerate
         });
-        return ret;
+        return hr;
     }
 
     bool UVCCamera::IsConnected() {
         return m_pDeviceFilter != NULL;
     }
 
-    TString UVCCamera::GetConnectedDeviceName() {
+    CameraInfo UVCCamera::GetConnectedDeviceInfo() {
         return m_connectedDevice;
     }
 
@@ -147,15 +170,18 @@ namespace libuvccam {
         HRESULT hr = m_pDeviceFilter->QueryInterface(IID_IAMCameraControl, (void**)&pCameraControl);
         if (FAILED(hr)) {
             // The device does not support IAMCameraControl
-            LOG_ERROR(L"This device does not support IAMCameraControl");
+            LOG_ERROR(L"This device does not support IAMCameraControl. hr:%s", errmsg(hr).c_str());
         } else {
             // Get the range and default values 
             hr = pCameraControl->GetRange(prop, &data.min, &data.max, &data.step, &data.default, &data.flags);
-            hr |= pCameraControl->Get(prop, &data.val, &data.flags);
-            LOG_DEBUG(L"prop:%d, data:%s", prop, data.DumpStr().c_str());
             if (hr != S_OK) {
-                LOG_ERROR(L"This device does not support PTZControl");
+                LOG_ERROR(L"GetRange fail. hr:%s", errmsg(hr).c_str());
             }
+            hr = pCameraControl->Get(prop, &data.val, &data.flags);
+            if (hr != S_OK) {
+                LOG_ERROR(L"Get fail. hr:%s", errmsg(hr).c_str());
+            }
+            LOG_DEBUG(L"GetProperty. prop:%d, data:%s", prop, data.DumpStr().c_str());
         }
         if (pCameraControl != NULL)
             pCameraControl->Release();
@@ -167,11 +193,12 @@ namespace libuvccam {
         HRESULT hr = m_pDeviceFilter->QueryInterface(IID_IAMCameraControl, (void**)&pCameraControl);
         if (FAILED(hr)) {
             // The device does not support IAMCameraControl
-            LOG_ERROR(L"This device does not support IAMCameraControl");
+            LOG_ERROR(L"This device does not support IAMCameraControl. hr:%s", errmsg(hr).c_str());
         } else {
             hr = pCameraControl->Set(prop, step, CameraControl_Flags_Manual);
+            LOG_DEBUG(L"Set. prop:%d, step:%d", prop, step);
             if (FAILED(hr)) {
-                LOG_ERROR(L"This device does not support PTZControl");
+                LOG_ERROR(L"Set fail. prop:%d, step:%d, hr:%s", prop, step, errmsg(hr).c_str());
             }
         }
         if (pCameraControl != NULL)
